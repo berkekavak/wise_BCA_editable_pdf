@@ -7,9 +7,12 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 
-  // 2) Embed Poppins-Regular.ttf
+  // 2) Embed Poppins fonts
   const poppinsBytes = fs.readFileSync("./Poppins/Poppins-Regular.ttf");
   const poppinsFont = await pdfDoc.embedFont(poppinsBytes);
+
+  const poppinsBoldBytes = fs.readFileSync("./Poppins/Poppins-SemiBold.ttf");
+  const poppinsBoldFont = await pdfDoc.embedFont(poppinsBoldBytes);
 
   const form = pdfDoc.getForm();
 
@@ -19,19 +22,34 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
   const logoWidth = 50;
   const logoHeight = logoWidth * (logoImage.height / logoImage.width);
 
+  // Modern color palette
+  const colors = {
+    primary: rgb(0.2, 0.4, 0.7),
+    primaryLight: rgb(0.85, 0.9, 0.95),
+    accent: rgb(0.3, 0.6, 0.9),
+    success: rgb(0.2, 0.7, 0.4),
+    warning: rgb(0.95, 0.7, 0.2),
+    danger: rgb(0.9, 0.3, 0.3),
+    text: rgb(0.15, 0.15, 0.15),
+    textLight: rgb(0.4, 0.4, 0.4),
+    border: rgb(0.85, 0.85, 0.85),
+    background: rgb(0.98, 0.98, 0.98),
+  };
+
   // Layout constants
   const pageWidth = 595.28;
   const pageHeight = 841.89;
   const marginL = 50;
   const marginR = 50;
-  const topY = pageHeight - 70;
-  const footerY = 30;
-  const compHeight = 20;
-  const itemHeight = 20;
-  const commentBoxHeight = 30;
-  const radioDiam = 12;
-  const labelFontSize = 5.5;
-  const marginAfter = 10;
+  const topY = pageHeight - 80;
+  const footerY = 35;
+  const compHeight = 28;
+  const itemHeight = 40;
+  const radioLineHeight = 18;
+  const commentBoxHeight = 45;
+  const radioDiam = 10;
+  const labelFontSize = 6;
+  const marginAfter = 18;
   const radioOptions = [
     "Unsatisfactory",
     "Needs improvement",
@@ -109,6 +127,50 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
   let currentY = topY;
   let isFirstPage = true;
 
+  // Helper function to draw rounded rectangle (simulated with corners)
+  function drawRoundedRect(
+    x,
+    y,
+    width,
+    height,
+    radius,
+    color,
+    isFilled = true
+  ) {
+    if (isFilled) {
+      // Main rectangle
+      currentPage.drawRectangle({
+        x: x + radius,
+        y: y,
+        width: width - 2 * radius,
+        height: height,
+        color: color,
+      });
+      currentPage.drawRectangle({
+        x: x,
+        y: y + radius,
+        width: width,
+        height: height - 2 * radius,
+        color: color,
+      });
+      // Corner circles
+      const cornerPositions = [
+        [x + radius, y + radius],
+        [x + width - radius, y + radius],
+        [x + radius, y + height - radius],
+        [x + width - radius, y + height - radius],
+      ];
+      cornerPositions.forEach(([cx, cy]) => {
+        currentPage.drawCircle({
+          x: cx,
+          y: cy,
+          size: radius,
+          color: color,
+        });
+      });
+    }
+  }
+
   // Helper function to add a new page if needed
   function addNewPage() {
     currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
@@ -119,54 +181,77 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
 
   // Helper function to add header
   function addHeader() {
+    // Modern header with background
+    currentPage.drawRectangle({
+      x: 0,
+      y: currentY - 5,
+      width: pageWidth,
+      height: 50,
+      color: colors.primaryLight,
+    });
+
     currentPage.drawText("Assessment Details for", {
       x: marginL,
-      y: currentY,
-      size: 22,
+      y: currentY + 10,
+      size: 24,
       font: poppinsFont,
-      color: rgb(0, 0, 0.7),
+      color: colors.primary,
     });
-    currentPage.drawLine({
-      start: { x: marginL, y: currentY - 10 },
-      end: { x: pageWidth - marginR, y: currentY - 10 },
-      thickness: 2,
-      color: rgb(0, 0, 0),
+
+    // Accent line under title
+    currentPage.drawRectangle({
+      x: marginL,
+      y: currentY - 8,
+      width: 180,
+      height: 3,
+      color: colors.accent,
     });
 
     // Keep "Competency" title only (no textbox)
     if (isFirstPage) {
       currentPage.drawText("Competency", {
         x: marginL,
-        y: currentY - 40,
-        size: 14,
+        y: currentY - 35,
+        size: 16,
         font: poppinsFont,
-        color: rgb(0, 0, 0),
+        color: colors.text,
       });
     }
 
-    currentY -= 70;
+    currentY -= isFirstPage ? 55 : 75;
   }
 
   // Helper function to add footer
   function addFooter() {
-    currentPage.drawLine({
-      start: { x: marginL, y: footerY + 12 },
-      end: { x: pageWidth - marginR, y: footerY + 12 },
-      thickness: 1,
-      color: rgb(0.8, 0.8, 0.8),
+    // Modern footer with subtle background
+    currentPage.drawRectangle({
+      x: 0,
+      y: 0,
+      width: pageWidth,
+      height: footerY + 20,
+      color: colors.background,
     });
+
+    currentPage.drawLine({
+      start: { x: marginL, y: footerY + 18 },
+      end: { x: pageWidth - marginR, y: footerY + 18 },
+      thickness: 1.5,
+      color: colors.accent,
+    });
+
     currentPage.drawImage(logoImage, {
       x: marginL,
       y: footerY,
       width: logoWidth,
       height: logoHeight,
     });
-    currentPage.drawText("Copyright WiseStella 2024", {
-      x: pageWidth - marginR - 100,
-      y: footerY,
-      size: 10,
+
+    currentPage.drawText("Copyright © WiseStella 2025", {
+      x: pageWidth - marginR - 120,
+      y: footerY + 5,
+      size: 9,
       font: poppinsFont,
-      color: rgb(0.5, 0.5, 0.5),
+      color: colors.textLight,
     });
   }
 
@@ -178,89 +263,107 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
   for (const comp of competencies) {
     const estimatedHeight =
       compHeight +
-      comp.items.length * (itemHeight + commentBoxHeight + marginAfter);
-    if (currentY - estimatedHeight < footerY + marginAfter) {
+      5 +
+      comp.items.length * (itemHeight + commentBoxHeight + marginAfter + 20);
+    if (currentY - estimatedHeight < footerY + 40) {
       addNewPage();
     }
 
-    const boxTopY = currentY;
+    // Modern section header with colored background and rounded corners
+    drawRoundedRect(
+      marginL,
+      currentY - compHeight,
+      pageWidth - marginL - marginR,
+      compHeight,
+      4,
+      colors.primaryLight,
+      true
+    );
+
     currentPage.drawText(`${comp.letter}. ${comp.title}`, {
-      x: marginL + 5,
-      y: currentY - 5,
-      size: 14,
+      x: marginL + 8,
+      y: currentY - 19,
+      size: 15,
       font: poppinsFont,
-      color: rgb(0, 0, 1),
+      color: colors.primary,
     });
-    currentY -= 5;
+    currentY -= compHeight + 5;
 
     for (const item of comp.items) {
+      // Item name with better styling (bolder)
       currentPage.drawText(`${item.id}. ${item.name}`, {
-        x: marginL + 5,
-        y: currentY - 15,
-        size: 6.5,
-        font: poppinsFont,
-        color: rgb(0, 0, 0),
+        x: marginL + 8,
+        y: currentY - 12,
+        size: 7.5,
+        font: poppinsBoldFont,
+        color: colors.text,
       });
+
+      // Move to next line for radio buttons
+      currentY -= radioLineHeight;
+
       const radioGroup = form.createRadioGroup(`rating_${item.id}`);
-      const availW = pageWidth - marginL - marginR - 100;
-      const spacing = (availW / (radioOptions.length - 1)) * 0.7;
+      const availW = pageWidth - marginL - marginR - 20;
+      const spacing = availW / radioOptions.length;
       const yRadio = currentY - 15;
 
+      // Color-coded radio options
+      const ratingColors = [
+        colors.danger,
+        colors.warning,
+        rgb(0.7, 0.7, 0.7),
+        rgb(0.4, 0.7, 0.5),
+        colors.success,
+      ];
+
       radioOptions.forEach((label, i) => {
-        const x = marginL + 150 + i * spacing;
+        const x = marginL + 15 + i * spacing;
         radioGroup.addOptionToPage(label, currentPage, {
           x,
           y: yRadio,
           width: radioDiam,
           height: radioDiam,
+          borderColor: ratingColors[i],
+          borderWidth: 1.5,
         });
+        // Center label vertically with radio button
         currentPage.drawText(label, {
-          x: x + radioDiam + 2,
-          y: yRadio - 2,
+          x: x + radioDiam + 5,
+          y: yRadio + 3,
           size: labelFontSize,
           font: poppinsFont,
-          color: rgb(0, 0, 0),
+          color: colors.textLight,
         });
       });
-      currentY -= itemHeight;
+      currentY -= itemHeight - radioLineHeight;
 
+      // Comment label
+      currentPage.drawText("Comment:", {
+        x: marginL + 8,
+        y: currentY - 10,
+        size: 7,
+        font: poppinsFont,
+        color: colors.textLight,
+      });
+      currentY -= 12;
+
+      // Modern comment field with subtle border
       const commentField = form.createTextField(`comment_${item.id}`);
       commentField.addToPage(currentPage, {
-        x: marginL + 5,
+        x: marginL + 8,
         y: currentY - commentBoxHeight - 5,
-        width: pageWidth - marginL - marginR - 10,
+        width: pageWidth - marginL - marginR - 16,
         height: commentBoxHeight,
-        borderColor: rgb(0, 0, 0),
+        borderColor: colors.border,
         borderWidth: 1,
+        backgroundColor: rgb(1, 1, 1),
       });
-      currentY -= commentBoxHeight;
-
-      currentPage.drawLine({
-        start: { x: marginL, y: currentY },
-        end: { x: pageWidth - marginR, y: currentY },
-        thickness: 1,
-        color: rgb(0, 0, 0),
-      });
-      currentY -= marginAfter;
+      commentField.setFontSize(8);
+      commentField.enableMultiline();
+      currentY -= commentBoxHeight + marginAfter - 5;
     }
 
-    const totalHeight = boxTopY - currentY + compHeight;
-    currentPage.drawRectangle({
-      x: marginL,
-      y: currentY,
-      width: pageWidth - marginL - marginR,
-      height: totalHeight,
-      borderColor: rgb(0, 0, 0),
-      borderWidth: 1,
-    });
-
-    currentPage.drawLine({
-      start: { x: marginL, y: currentY },
-      end: { x: pageWidth - marginR, y: currentY },
-      thickness: 1,
-      color: rgb(0, 0, 0),
-    });
-    currentY -= marginAfter;
+    currentY -= marginAfter + 5;
   }
 
   // Save to disk
