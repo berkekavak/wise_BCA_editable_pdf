@@ -41,7 +41,7 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
   const pageHeight = 841.89;
   const marginL = 50;
   const marginR = 50;
-  const topY = pageHeight - 80;
+  const topY = pageHeight - 50;
   const footerY = 35;
   const compHeight = 28;
   const itemHeight = 40;
@@ -125,7 +125,6 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
 
   let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
   let currentY = topY;
-  let isFirstPage = true;
 
   // Helper function to draw rounded rectangle (simulated with corners)
   function drawRoundedRect(
@@ -176,7 +175,6 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
     currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
     currentY = topY;
     addFooter();
-    isFirstPage = false;
   }
 
   // Helper function to add header
@@ -207,18 +205,7 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
       color: colors.accent,
     });
 
-    // Keep "Competency" title only (no textbox)
-    if (isFirstPage) {
-      currentPage.drawText("Competency", {
-        x: marginL,
-        y: currentY - 35,
-        size: 16,
-        font: poppinsFont,
-        color: colors.text,
-      });
-    }
-
-    currentY -= isFirstPage ? 55 : 75;
+    currentY -= 20;
   }
 
   // Helper function to add footer
