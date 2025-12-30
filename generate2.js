@@ -52,7 +52,7 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
   const marginAfter = 18;
   const radioOptions = [
     "Unsatisfactory",
-    "Needs improvement",
+    "Needs Improvement",
     "Meets Expectations",
     "Exceeds Expectations",
     "Exceptional",
@@ -77,6 +77,7 @@ const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
         { id: "B1", name: "Shared understanding" },
         { id: "B2", name: "Style of communication" },
         { id: "B3", name: "Feedback" },
+        { id: "B4", name: "Persuasion" },
       ],
     },
     {
