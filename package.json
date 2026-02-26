@@ -1,0 +1,16 @@
+{
+  "name": "wise-bca-editable-pdf",
+  "version": "1.0.0",
+  "description": "WiseStella BCA Assessment PDF Generator",
+  "main": "generate2.js",
+  "scripts": {
+    "generate": "node generate2.js"
+  },
+  "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "pdf-lib": "^1.17.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
